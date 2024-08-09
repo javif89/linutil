@@ -2,7 +2,7 @@ mod float;
 mod list;
 mod running_command;
 pub mod state;
-pub mod command;
+pub mod commandlist;
 mod theme;
 
 use std::{

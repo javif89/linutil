@@ -8,7 +8,7 @@ use ratatui::{
     widgets::{Block, Borders, List, ListState},
     Frame,
 };
-use super::command;
+use super::commandlist;
 
 #[derive(Clone)]
 struct ListNode {
@@ -56,7 +56,7 @@ impl CustomList {
         let mut cwd = std::env::current_dir().expect("Could not get path to current executable");
         cwd.push("src");
         cwd.push("commands");
-        let commands = command::Command::list(&cwd.into_os_string().into_string().unwrap());
+        let commands = commandlist::Command::from_path(&cwd.into_os_string().into_string().unwrap());
         // When a function call ends with an exclamation mark, it means it's a macro, like in this
         // case the tree! macro expands to `ego-tree::tree` data structure
         let mut tree = ego_tree::Tree::new(ListNode {
