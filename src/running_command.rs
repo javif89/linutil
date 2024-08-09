@@ -26,7 +26,7 @@ use crate::{float::floating_window, state::AppState};
 #[derive(Clone)]
 pub enum Command {
     Raw(&'static str),
-    LocalFile(&'static str),
+    LocalFile(String),
     None, // Directory
 }
 

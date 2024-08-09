@@ -2,6 +2,7 @@ mod float;
 mod list;
 mod running_command;
 pub mod state;
+pub mod command;
 mod theme;
 
 use std::{
@@ -9,7 +10,7 @@ use std::{
     time::Duration,
 };
 
-use clap::Parser;
+use clap::{builder::Str, Parser};
 use crossterm::{
     cursor::RestorePosition,
     event::{self, DisableMouseCapture, Event, KeyCode, KeyEventKind},

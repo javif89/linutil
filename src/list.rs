@@ -8,10 +8,11 @@ use ratatui::{
     widgets::{Block, Borders, List, ListState},
     Frame,
 };
+use super::command;
 
 #[derive(Clone)]
 struct ListNode {
-    name: &'static str,
+    name: String,
     command: Command,
 }
 
@@ -52,68 +53,28 @@ impl PreviewWindowState {
 
 impl CustomList {
     pub fn new() -> Self {
+        let mut cwd = std::env::current_dir().expect("Could not get path to current executable");
+        cwd.push("src");
+        cwd.push("commands");
+        let commands = command::Command::list(&cwd.into_os_string().into_string().unwrap());
         // When a function call ends with an exclamation mark, it means it's a macro, like in this
         // case the tree! macro expands to `ego-tree::tree` data structure
-        let tree = tree!(ListNode {
-            name: "root",
+        let mut tree = ego_tree::Tree::new(ListNode {
+            name: String::from("root"),
             command: Command::None,
-        } => {
-            ListNode {
-                name: "System Setup",
-                command: Command::None,
-            } => {
-                ListNode {
-                    name: "Build Prerequisites",
-                    command: Command::LocalFile("system-setup/1-compile-setup.sh"),
-                },
-                ListNode {
-                    name: "Gaming Dependencies",
-                    command: Command::LocalFile("system-setup/2-gaming-setup.sh"),
-                },
-                ListNode {
-                    name: "Global Theme",
-                    command: Command::LocalFile("system-setup/3-global-theme.sh"),
-                },
-            },
-            ListNode {
-                name: "Security",
-                command: Command::None
-            } => {
-                ListNode {
-                    name: "Firewall Baselines (CTT)",
-                    command: Command::LocalFile("security/firewall-baselines.sh"),
-                }
-            },
-            ListNode {
-                name: "Applications Setup",
-                command: Command::None
-            } => {
-                ListNode {
-                    name: "Alacritty Setup",
-                    command: Command::LocalFile("applications-setup/alacritty-setup.sh"),
-                },
-                ListNode {
-                    name: "Bash Prompt Setup",
-                    command: Command::Raw("bash -c \"$(curl -s https://raw.githubusercontent.com/ChrisTitusTech/mybash/main/setup.sh)\""),
-                },
-                ListNode {
-                    name: "Kitty Setup",
-                    command: Command::LocalFile("applications-setup/kitty-setup.sh")
-                },
-                ListNode {
-                    name: "Neovim Setup",
-                    command: Command::Raw("bash -c \"$(curl -s https://raw.githubusercontent.com/ChrisTitusTech/neovim/main/setup.sh)\""),
-                },
-                ListNode {
-                    name: "Rofi Setup",
-                    command: Command::LocalFile("applications-setup/rofi-setup.sh"),
-                },
-            },
-            ListNode {
-                name: "Full System Update",
-                command: Command::LocalFile("system-update.sh"),
-            },
         });
+        let mut root = tree.root_mut();
+
+        for c in commands.into_iter() {
+            let path = c.path.to_owned();
+            let node = ListNode {
+                name: c.name,
+                command: Command::LocalFile(path.clone())
+            };
+
+            root.append(node);
+        }
+        
         // We don't get a reference, but rather an id, because references are siginficantly more
         // paintfull to manage
         let root_id = tree.root().id();
@@ -235,7 +196,7 @@ impl CustomList {
                 stack.push(child.id());
             }
         }
-        self.filtered_items.sort_by(|a, b| a.name.cmp(b.name));
+        self.filtered_items.sort_by(|a, b| a.name.cmp(&b.name));
     }
 
     /// Resets the selection to the first item
